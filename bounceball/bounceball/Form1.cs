@@ -14,27 +14,26 @@ namespace bounceball
     public partial class ballfield : Form
     {
         #region Data
-        ballpic ballclass = new ballpic();
-        private int stepx = 1;
-        private int stepy =1;
-        public List<PictureBox> ballList = new List<PictureBox>();
+        Ball ballclass1 = new Ball();
+        List<Ball> ballList = new List<Ball>();
         #endregion
 
-        private void MoveBall(PictureBox ball )
+        private void MoveBall(Ball ball)
         {
             #region X_movement
-            Action a = () => { ball.Location = new Point(ball.Location.X + stepx, ball.Location.Y); };// mooving the pic by chanching the location in the action 
-                this.BeginInvoke(a);
-                if (ball.Location.X <= 0 || ball.Location.X + ball.Width > this.ClientSize.Width)//to change the moving direction when the X coordination of the pic hit the boarder 
-                stepx = -stepx;
+            Action a = () => { ball.ball.Location = new Point(ball.ball.Location.X + ball.stepX, ball.ball.Location.Y); };// mooving the pic by chanching the location in the action 
+            this.BeginInvoke(a);
+            #region updating the previouse steps
+            ball.previousStepX = ball.stepX;
+            ball.previousStepY = ball.stepY;
             #endregion
-            #region Y_MOVEMENT
-            Action a2 = () => { ball.Location = new Point(ball.Location.X, ball.Location.Y + stepy); };// to change the moving direction when the coordinayhion of th pic hits the boarder };
-                this.BeginInvoke(a2);
-                if ((ball.Location.Y <= 0 || ball.Location.Y + ball.Height > this.ClientSize.Height)) 
-                {
-                    stepy = -stepy;
-                }
+            #endregion
+            #region Y_movement
+            Action a2 = () => { ball.ball.Location = new Point(ball.ball.Location.X, ball.ball.Location.Y + ball.stepY); };// to change the moving direction when the coordinayhion of th pic hits the boarder };
+            this.BeginInvoke(a2);
+            #endregion
+            #region UPDATESTEP
+            ball.UpdateSteps(this.ClientSize.Width, this.ClientSize.Height);// the fun checks if the ball hits the window border and change the vlue of the steps if its true
             #endregion
         }
         public ballfield()
@@ -48,14 +47,15 @@ namespace bounceball
             
         }
 
-        private async void moveTask()
+        private async void MoveTask()
         {
             while (true)
             {
-                foreach (var ballpic in ballList)
+
+                foreach (var tt in ballList)
                 {
-                    Task.Factory.StartNew(() => { MoveBall(ballpic); });
-                    ballpic.DoubleClick += new EventHandler((o, a) => { ballList.Remove(ballpic); });
+                    Task.Factory.StartNew(() => { MoveBall(tt); }) ;
+                    
                 }
                 await Task.Delay(10);
             }
@@ -63,10 +63,11 @@ namespace bounceball
 
         private void NewBall_click(object sender, MouseEventArgs e)
         {
-            PictureBox b= ballclass.CreatOne(this.ClientSize.Width, this.ClientSize.Height);
+            PictureBox b= ballclass1.CreatOne(this.ClientSize.Width, this.ClientSize.Height);
             this.Controls.Add(b);
-            ballList.Add(b);
-            b.Click += new EventHandler((o, a) => { moveTask(); });//when the pic clicked it will start mooving 
+            Ball ba = new Ball(b);
+            ballList.Add(ba);            
+            b.Click += new EventHandler((o, a) => { MoveTask(); });//when the pic clicked it will start mooving 
         }
         
     }
